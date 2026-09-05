@@ -31,6 +31,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+@app.post("/api/v1/catalog/auto-generate")
+async def generate_catalog():
+    return {"status": "success", "message": "Backend connected successfully!"}
 
 @app.get("/")
 def root():
