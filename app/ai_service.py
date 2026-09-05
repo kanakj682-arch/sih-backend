@@ -1,4 +1,5 @@
 import json
+import asyncio
 from typing import Optional
 from app.config import settings
 
@@ -28,7 +29,14 @@ class AICatalogService:
         try:
             import google.generativeai as genai
             genai.configure(api_key=settings.GEMINI_API_KEY)
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            
+            # Direct JSON Output configuration
+            generation_config = {
+                "temperature": 0.2,
+                "response_mime_type": "application/json"
+            }
+            
+            model = genai.GenerativeModel('gemini-1.5-flash', generation_config=generation_config)
             
             prompt = f"""
             Analyze the product image and artisan input: "{raw_text_or_transcript or ''}".
@@ -46,12 +54,21 @@ class AICatalogService:
                 "seo_tags": ["tag1", "tag2"]
             }}
             """
+            
+            # Correct image formatting for google-generativeai SDK
             image_part = {
                 "mime_type": "image/jpeg", 
-                "data": image_bytes}
-            response = model.generate_content([prompt, image_part])
+                "data": image_bytes
+            }
+            
+            # Run blocking API call in an executor to avoid crashing ASGI event loop
+            loop = asyncio.get_event_loop()
+            response = await loop.run_in_executor(
+                None, 
+                lambda: model.generate_content([prompt, image_part])
+            )
             
             clean_json = response.text.replace("```json", "").replace("```", "").strip()
             return json.loads(clean_json)
         except Exception as e:
-            raise RuntimeError(f"AI Cataloging Failed: {str(e)}")
+            raise RuntimeError(f"AI Cataloging Failed: {str(e)}")CORSMiddleware
