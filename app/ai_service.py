@@ -46,7 +46,9 @@ class AICatalogService:
                 "seo_tags": ["tag1", "tag2"]
             }}
             """
-            image_part = {"mime_type": "image/jpeg", "data": image_bytes}
+            image_part = {
+                "mime_type": "image/jpeg", 
+                "data": image_bytes}
             response = model.generate_content([prompt, image_part])
             
             clean_json = response.text.replace("```json", "").replace("```", "").strip()
